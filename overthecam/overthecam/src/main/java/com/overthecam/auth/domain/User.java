@@ -1,15 +1,15 @@
 package com.overthecam.auth.domain;
 
+import com.overthecam.common.entity.TimeStampEntity;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class User extends TimeStampEntity {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long userId;
 
@@ -33,22 +33,6 @@ public class User {
 
     @Column(columnDefinition = "INT DEFAULT 0")
     private Integer point = 0;
-
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    private LocalDateTime updatedAt;
-
-    @PrePersist
-    protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 
     @Builder
     public User(String nickname, String email, Integer gender, String password) {
