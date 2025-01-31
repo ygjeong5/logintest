@@ -1,4 +1,4 @@
-package com.overthecam.auth.domain.dto;
+package com.overthecam.auth.dto;
 
 import com.overthecam.auth.domain.User;
 import lombok.AccessLevel;

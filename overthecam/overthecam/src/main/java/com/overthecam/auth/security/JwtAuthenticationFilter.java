@@ -21,15 +21,29 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String token = resolveToken(request);
+        String accessToken = resolveToken(request);
 
-        if (token != null && tokenProvider.validateToken(token)) {
-            String email = tokenProvider.getEmail(token);
-            Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        if (accessToken != null) {
+            if (tokenProvider.validateToken(accessToken)) {
+                setAuthentication(accessToken);
+            } else if (tokenProvider.isExpiredToken(accessToken)) {
+                String refreshToken = request.getHeader("Refresh-Token");
+                if (refreshToken != null && tokenProvider.validateToken(refreshToken)) {
+                    String email = tokenProvider.getEmail(refreshToken);
+                    String newAccessToken = tokenProvider.recreateAccessToken(email);
+                    response.setHeader("New-Access-Token", newAccessToken);
+                    setAuthentication(newAccessToken);
+                }
+            }
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void setAuthentication(String token) {
+        String email = tokenProvider.getEmail(token);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(email, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
     private String resolveToken(HttpServletRequest request) {
